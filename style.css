@@ -1,0 +1,8 @@
+img{
+    transform: scale(0.9);
+    padding: 1rem 2rem;
+    font-family: inherit;
+    margin-right: 60rem;
+    margin-top: 6rem;
+    justify-content: space-between;
+}

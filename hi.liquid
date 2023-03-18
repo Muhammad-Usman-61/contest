@@ -1,0 +1,413 @@
+<div style="display:flex; padding-top:1rem;border-top: .6px solid #7A685B">
+  <label class="switch-label" style="display: flex;align-items: center;">
+    <div style="width: 1.6rem;margin-right: 1rem;filter: invert(42%) sepia(9%) saturate(835%) hue-rotate(342deg) brightness(95%) contrast(88%);"><img src="https://img.icons8.com/ios/100/null/gift--v1.png" /></div>
+    <span style="margin-right: 2rem;">Add gifting options?</span>
+    <span>No</span>
+    <input
+      type="checkbox"
+      id="toggle"
+      class="switch">
+    <span class="switch" style="margin-right: 5px;margin-left: 5px;"></span>
+    <span>Yes</span>
+  </label>
+</div>
+
+<div id="popup" class="welcome">
+  <div id="popup_2">
+    <div style="text-align: right !important;">
+      <button onclick="closePopup()">X</button>
+    </div>
+    <h3 style="margin-bottom: 0;font-family:'Avenir Next', sans-serif;font-size: 1.4rem;">GIFTING OPTIONS</h3>
+    <p style="margin-top: 0;font-family: 'Avenir Next', sans-serif;font-size: .8rem;">Choose your gift packaging and add an optional message.</p>
+    {% assign giftCounter = 0 %}
+    {% for product in collections.all.products %}
+      {% if product.tags contains 'gift_options' %}
+        {% assign giftCounter = giftCounter | plus: 1 %}
+        <div class="product-section">
+          <div class="product__div1 {% if giftCounter == 1 %}active{% endif %}">
+            <label class="product__label" style="display: flex !important;">
+              <input
+                style="z-index: 99999999999;position: absolute; margin: 0.5rem;"
+                type="checkbox"
+                name="product-{{ product.id }}"
+                value="{{ product.variants.first.id }}"
+                data-image="{{ product.featured_image.src | img_url: 'master' }}"
+                data-title="{{ product.title }}"
+                data-price="{{ product.price }}"
+                {% if giftCounter == 1 %}checkeddisabled{% endif %}
+                onchange="handleProductChange(this)">
+              <img
+                src="{{ product.featured_image.src | img_url: 'master' }}"
+                alt="{{ product.title }}"
+                class="variant-image1">
+              <div style="text-align: start; padding-left: 1rem;">
+                <span class="product__caption" style="font-family: 'Avenir Next', sans-serif;">{{ product.title }} +
+                </span>
+                <span class="product__price" style="font-family: 'Avenir Next', sans-serif;">{{ product.price | money }}</span>
+                <p style="font-size: .7rem; margin-top: 0;font-family: 'Avenir Next', sans-serif;">{{ product.description }}</p>
+              </div>
+            </label>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {% for product in collections.all.products %}
+      {% if product.tags contains "greeting_product" %}
+        <div class="product__div2">
+          <label class="product__label" style="display: flex !important;">
+            <input
+              style="z-index: 99999999999;position: absolute; margin: 0.5rem;"
+              type="checkbox"
+              name="product-{{ product.id }}"
+              value="{{ product.variants.first.id }}"
+              data-image="{{ product.featured_image.src | img_url: 'master' }}"
+              data-title="{{ product.title }}"
+              data-price="{{ product.price }}"
+              onchange="handleProductChange2(this)">
+            <img
+              src="{{ product.featured_image.src | img_url: 'master' }}"
+              alt="{{ product.title }}"
+              class="variant-image1">
+            <div style="text-align: start; padding-left: 1rem;">
+              <span class="product__caption" style="font-family: 'Avenir Next', sans-serif;">{{ product.title }} +
+              </span>
+              <span class="product__price" style="font-family: 'Avenir Next', sans-serif;">{{ product.price | money }}</span>
+              <div>
+                <button
+                  style="padding-left: 0;font-family: 'Avenir Next', sans-serif;border-radius: 5px;
+                                  padding: 0 0.2rem;
+                                  background: #E6E1DD;"
+                  id="edit-button"
+                  onclick="toggleForm()">Add text</button>
+              </div>
+              <div style="display: flex;">
+                <form
+                  action="/cart/add"
+                  method="post"
+                  id="product-form-{{ section.id }}"
+                  style="display:none;">
+                  <input
+                    type="hidden"
+                    name="id"
+                    value="{{ product.variants.first.id }}">
+                  <textarea
+                    id="message"
+                    placeholder="Message"
+                    name="properties[Message]"></textarea>
+                  <div style="display: flex; margin-top: 10px;">
+                    <button
+                      style="padding-left: 0;font-family: 'Avenir Next', sans-serif;border-radius: 5px;
+                                            padding: 0 0.2rem;
+                                            background: #E6E1DD; margin-right:1rem;"
+                      type="submit"
+                      onclick="submitForm(event)">Submit</button>
+                    <button
+                      style="padding-left: 10px;font-family: 'Avenir Next', sans-serif;border-radius: 5px;
+                                            padding: 0 0.2rem;
+                                            background: #E6E1DD;"
+                      type="button"
+                      onclick="toggleForm()">Cancel</button>
+                  </div>
+                </form>
+
+              </div>
+
+
+              <script>
+                function toggleForm() {
+                  var form = document.getElementById("product-form- {{ section.id }}");
+                  var button = document.getElementById("edit-button");
+                  if (form.style.display === "none") {
+                    form.style.display = "block";
+                  } else {
+                    form.style.display = "none";
+
+                  }
+                }
+
+                function submitForm(event) {
+                  event.preventDefault();
+                  var form = document.getElementById("product-form- {{ section.id }}");
+                  var button = document.getElementById("edit-button");
+                  var formData = new FormData(form);
+                  fetch('/cart/add.js', {
+                    method: 'POST',
+                    body: formData
+                  }).then(function(response) {
+                    return response.json();
+                  }).then(function(json) {
+                    console.log(json); // You can remove this console.log statement
+                    form.style.display = "none";
+                    button.innerHTML = "Edit";
+                  }).catch(function(error) {
+                    console.error(error);
+                  });
+                }
+              </script>
+
+              <p style="font-size: .7rem; margin-top: 0;font-family: 'Avenir Next', sans-serif;">{{ product.description }}</p>
+            </div>
+          </label>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    <div style="display: flex !important; justify-content: space-around;margin-bottom: 5rem;position:fixed;top:41rem;background:#fff;padding:1rem;">
+      <div style="margin-right: 1rem;">
+        <button
+          class="cancel_but"
+          onclick="cancelPopup()"
+          style="font-family: 'Avenir Next', sans-serif;">Cancel</button>
+      </div>
+      <div class="add-to-cart-section">
+        <button
+          style="font-family:'Avenir Next', sans-serif;"
+          type="button"
+          class="add-to-cart-btn1 button button--secondary"
+          onclick="addSelectedProductsToCart(); document.getElementById('toggle').checked = true;">Apply</button>
+      </div>
+    </div>
+    <script>
+      function handleProductChange(checkbox) {
+        const productDiv = checkbox.closest('.product__div1');
+        if (checkbox.checked) {
+          productDiv.classList.add('active');
+        } else {
+          productDiv.classList.remove('active');
+        }
+      }
+      function handleProductChange2(checkbox) {
+        const productDiv = checkbox.closest('.product__div2');
+        if (checkbox.checked) {
+          productDiv.classList.add('active');
+        } else {
+          productDiv.classList.remove('active');
+        }
+      }
+
+      function addSelectedProductsToCart() {
+        const selectedProducts = document.querySelectorAll('.product__div1 input[type="checkbox"]:checked');
+        if (selectedProducts.length > 0) {
+          const formData = new FormData();
+          let totalPrice = 0;
+          selectedProducts.forEach(function(checkbox) {
+            const variantId = checkbox.value;
+            if (variantId !== "add-gift") {
+              const price = parseFloat(checkbox.dataset.price);
+              totalPrice += price;
+              formData.append('id[]', variantId);
+              formData.append('quantity[]', 1);
+            } else {
+              totalPrice += 4;
+            }
+            const productDiv = checkbox.closest('.product__div1');
+            productDiv.classList.remove('active');
+          });
+          formData.append('properties[_total_price]', totalPrice.toFixed(2));
+          fetch('/cart/add.js', {
+            method: 'POST',
+            body: formData
+          }).then(function(response) {
+            if (response.ok) { // hide the entire product options section
+              const productOptions = document.querySelectorAll('.welcome');
+              productOptions.forEach(function(section) {
+                section.style.display = 'none';
+              });
+            } else {
+              throw new Error('Network response was not ok.');
+            }
+          }).catch(function(error) {
+            console.error('Error adding item to cart:', error);
+          });
+        }
+      }
+    </script>
+
+
+    <style>
+      @media screen and (max-width: 800px) {
+        #popup_2 {
+          width: 100%;
+        }
+      }
+      .cancel_but {
+        padding: 1rem 3rem;
+        border: 1px solid #7A685B;
+        color: #7A685B;
+        font-family: 'Avenir Next', sans-serif;
+      }
+      .cancel_but:hover {
+        background: #E6E1DD;
+      }
+      .product__div1.active {
+        opacity: 1;
+        box-sizing: border-box;
+        border: 2px solid #7A685B;
+      }
+      .product__div1 {
+        opacity: 0.5;
+        margin-right: 2rem;
+      }
+      .product__div2.active {
+        opacity: 1;
+        box-sizing: border-box;
+        border: 2px solid #7A685B;
+      }
+      .product__div2 {
+        opacity: 0.5;
+        margin-right: 2rem;
+        margin-bottom: 12rem;
+      }
+      .product-section {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .product__div1 img {
+        width: 7rem;
+        height: 100%;
+      }
+
+      .product__div1 img:hover {
+        transform: scale(0.95);
+      }
+
+      .product__div1 {
+        display: block;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+      .product__div2 img {
+        width: 7rem;
+        height: 100%;
+      }
+
+      .product__div2 img:hover {
+        transform: scale(0.95);
+      }
+
+      .product__div2 {
+        display: block;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+        margin-bottom: 12rem;
+      }
+      .product-add-to-cart {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+      }
+      .add-to-cart-btn1 {
+        padding: 1rem 3rem;
+        background: #7A685B;
+        color: white;
+        border: 1px solid #7A685B;
+      }
+      .add-to-cart-btn1:hover {
+        background: #E6E1DD;
+        color: #7A685B;
+      }
+    </style>
+
+  </div>
+</div>
+
+<style>
+  #popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99999;
+  }
+  #popup_2 {
+    position: absolute;
+    width: 25%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100%;
+    background-color: white;
+    padding: 20px;
+    right: 0;
+    top: 6rem;
+  }
+</style>
+<script>
+  function closePopup() {
+    document.getElementById("popup").style.display = "none";
+    document.body.style.overflow = "auto"; // enable scroll
+  }function cancelPopup() {
+    document.getElementById("popup").style.display = "none";
+    document.getElementById("toggle").checked = false; // turn off the toggle button
+    document.body.style.overflow = "auto"; // enable scroll
+  }
+
+  const toggle = document.getElementById("toggle");
+  const popup = document.getElementById("popup");
+
+  toggle.addEventListener("click", function() {
+    if (toggle.checked) {
+      popup.style.display = "block";
+      document.body.style.overflow = "hidden"; // disable scroll
+    } else {
+      popup.style.display = "none";
+      document.body.style.overflow = "auto"; // enable scroll
+    }
+  });
+</script>
+<style>
+  /* Hide the default checkbox appearance */
+  .switch-label input[type="checkbox"] {
+    display: none;
+  }
+
+  /* Style the switch container */
+  .switch {
+    display: inline-block;
+    position: relative;
+    width: 48px;
+    height: 24px;
+    margin-right: 3rem;
+  }
+
+  /* Style the switch background */
+  .switch::before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    background-color: #ccc;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Style the switch toggle */
+  .switch::after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s ease;
+  }
+
+  /* Style the switch when it's checked */
+  .switch-label input[type="checkbox"]:checked + .switch::before {
+    background-color: #7A685B;
+  }
+  .switch-label input[type="checkbox"]:checked + .switch::after {
+    transform: translateX(24px);
+  }
+</style>
